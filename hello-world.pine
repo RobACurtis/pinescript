@@ -1,0 +1,65 @@
+//@version=4
+
+study("Hello World", overlay=true)
+
+offset          = input(defval=-13, type=input.integer, title="offset")
+locationString  = input(defval="above bar", title="Location", options=['top', 'bottom', 'below bar', 'above bar', 'absolute'])
+location        = locationString == 'top' ? location.top :
+                  locationString == 'bottom' ? location.bottom :
+                  locationString == 'below bar' ? location.belowbar :
+                  locationString == 'above bar' ? location.abovebar : location.absolute
+
+// Color Palette Control
+colorString     = input(defval="spectrum", options=['spectrum', 'red', 'orange', 'yellow', 'blue'], title="Color Palette", type=input.string)
+getPalette() =>
+    if colorString == "spectrum"
+        mod = bar_index % 10
+        if mod == 0
+            [#FF0000, #FF8000, #FFD500, #FFF000, #AAFF00, #00FFD5, #19B2FF, #0000FF, #8000FF, #FF00FF]
+        else if mod == 1
+            [#FF00FF, #FF0000, #FF8000, #FFD500, #FFF000, #AAFF00, #00FFD5, #19B2FF, #0000FF, #8000FF]
+        else if mod == 2
+            [#8000FF, #FF00FF, #FF0000, #FF8000, #FFD500, #FFF000, #AAFF00, #00FFD5, #19B2FF, #0000FF]
+        else if mod == 3
+            [#0000FF, #8000FF, #FF00FF, #FF0000, #FF8000, #FFD500, #FFF000, #AAFF00, #00FFD5, #19B2FF]
+        else if mod == 4
+            [#19B2FF, #0000FF, #8000FF, #FF00FF, #FF0000, #FF8000, #FFD500, #FFF000, #AAFF00, #00FFD5]
+        else if mod == 5
+            [#00FFD5, #19B2FF, #0000FF, #8000FF, #FF00FF, #FF0000, #FF8000, #FFD500, #FFF000, #AAFF00]
+        else if mod == 6
+            [#AAFF00, #00FFD5, #19B2FF, #0000FF, #8000FF, #FF00FF, #FF0000, #FF8000, #FFD500, #FFF000]
+        else if mod == 7
+            [#FFF000, #AAFF00, #00FFD5, #19B2FF, #0000FF, #8000FF, #FF00FF, #FF0000, #FF8000, #FFD500]
+        else if mod == 8
+            [#FFD500, #FFF000, #AAFF00, #00FFD5, #19B2FF, #0000FF, #8000FF, #FF00FF, #FF0000, #FF8000]
+        else
+            [#FF8000, #FFD500, #FFF000, #AAFF00, #00FFD5, #19B2FF, #0000FF, #8000FF, #FF00FF, #FF0000]
+
+    else if colorString == 'red'
+        [#FF0000, #FF0000, #FF0000, #FF0000, #FF0000, #FF0000, #FF0000, #FF0000, #FF0000, #FF0000]
+    else if colorString == 'orange'
+        [#FF8000, #FF8000, #FF8000, #FF8000, #FF8000, #FF8000, #FF8000, #FF8000, #FF8000, #FF8000]
+    else if colorString == 'yellow'
+        [#FFF000, #FFF000, #FFF000, #FFF000, #FFF000, #FFF000, #FFF000, #FFF000, #FFF000, #FFF000]
+    else if colorString == 'blue'
+        [#0000FF, #0000FF, #0000FF, #0000FF, #0000FF, #0000FF, #0000FF, #0000FF, #0000FF, #0000FF]
+    else
+        [#FFFFFF, #FFFFFF, #FFFFFF, #FFFFFF, #FFFFFF, #FFFFFF, #FFFFFF, #FFFFFF, #FFFFFF, #FFFFFF]
+
+
+[c1, c2, c3, c4, c5, c6, c7, c8, c9, c10] = getPalette()
+
+plotchar(high, char='H', show_last=1, offset=offset, location=location, color=c1)
+plotchar(high, char='E', show_last=1, offset=offset+1, location=location, color=c2)
+plotchar(high, char='L', show_last=1, offset=offset+2,  location=location, color=c3)
+plotchar(high, char='L', show_last=1, offset=offset+3,  location=location, color=c4)
+plotchar(high, char='O', show_last=1, offset=offset+4, location=location, color=c4)
+plotchar(high, char='W', show_last=1, offset=offset+6, location=location, color=c5)
+plotchar(high, char='O', show_last=1, offset=offset+7, location=location, color=c6)
+plotchar(high, char='R', show_last=1, offset=offset+8, location=location, color=c7)
+plotchar(high, char='L', show_last=1, offset=offset+9, location=location, color=c8)
+plotchar(high, char='D', show_last=1, offset=offset+10, location=location, color=c9)
+plotchar(high, char='!', show_last=1, offset=offset+11, location=location, color=c10)
+plotchar(bar_index % 3 == 0 ? high : na, char='🌎', show_last=1, offset=offset+13, location=location)
+plotchar(bar_index % 3 == 1 ? high : na, char='🌍', show_last=1, offset=offset+13, location=location)
+plotchar(bar_index % 3 == 2 ? high : na, char='🌎', show_last=1, offset=offset+13, location=location)

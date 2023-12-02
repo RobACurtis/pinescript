@@ -1,0 +1,113 @@
+///@version=4
+study("Variable Operators - Arithmetic")
+
+//  There are five arithmetic operators in Pine Script:
+//      + 	Addition
+//      - 	Subtraction
+//      * 	Multiplication
+//      / 	Division
+//      % 	Modulo (remainder after division)
+
+// ----- ARITHMETIC ------
+
+
+// ADDITION & SUBTRACTION
+_int_4 = 2 + 2              // const int = 4
+_int_0 = 2 - 2              // const int = 0
+_float = 2.0 + 2.0          // const float = 4.0
+_float_ = 2.0 - 2.0         // const float = 0.0
+_float_int = 2 + 2.0        // const float = 4.0
+series_float = close + 4    // series float = close[n] + 4
+// If one operand is na then the result will be na
+always_na = 2 + na + (close - 4)        // na
+// plot(always_na)
+
+// String concatenation. Only works with the "+" operator.
+string_1 = "current "
+string_2 = "range"
+concatenation = string_1 + string_2    // "current range" = "current " + "range"
+// plot(close, title = concatenation)
+
+// binary & unary
+num = 1
+unary_sub = - num   // Negates the expression
+unary_add = + num    // does nothing added just for the symmetry with the unary - operator
+// plot(unary_add, color=color.green, title='unary add')
+// plot(unary_sub, color=color.red, title='unary subtract')
+
+// Example Use Case: Finding the range
+range = high - low
+plot(range)
+change_range = range - range[4]  // Difference between todays range and yesterdays range
+change_range_bi = change(range, 4)  // Built in function that does same thing as above
+// plot(range, title=concatenation, color=color.red)
+// plot(change_range, title="change " + string_2, color=color.orange )
+// plot(change_range_bi, title="change " + string_2 + " bi", color=color.yellow )
+
+
+
+// DIVISION & MULTIPLICATION
+_int_div = 2 / 2                // const int = 1
+_int_mult = 2 * 2               // const int = 4
+_float_div = 2.0 / 2.0          // const float = 1.0
+_float_mult = 2.0 * 2.0         // const float = 4.0
+_float_div_ = 2 / 2.0           // const float = 1.0
+series_div = close / 4          // series float = close[n] / 4
+series_mult = close * 4         // series float = close[n] * 4
+// Note* Result is a float because built-in "close" variable is a series[float]
+
+// If one operand is na then the result will be na
+always_na_div = 2 / na          // na
+always_na_mult = na(2 * na)         // na
+// plot(always_na_div)
+
+// impossible_div = 1 / 0       // This will throw an error
+bad_fraction = 1 / 2            // This does not equal 0.5 because these are both ints so the result is an integer
+good_fraction = 1.0 / 2         // Automatically casts to float
+better_fraction = 1.0 / 2.0
+plot(bad_fraction)
+
+// Example Use Case: Finding averages
+bar_sum = high + low
+// high_low_avg =  bar_sum / 2  //  (high + low) / 2
+// high_low_avg =  (high + low) / 2
+high_low_avg = hl2 // built-in variable
+// plot(high_low_avg, title="high + low / " + "2", color=color.orange)
+
+high_low_close_avg = (high + low + close) / 3   // built in variable hlc3
+// plot(high_low_close_avg, title='hlc / 3', color=color.purple)
+
+
+// Example Use Case: % change
+_change = ((close - close[1]) / close) * 100
+// plot(_change, '% change')
+
+
+
+// MODULO -- division remainder
+mod_2 = 5.0 % 3.0  //  5 / 3 =  1 and 2/3. The modulo being the numerator "2"
+// plot(mod_2, 'modulus 5 % 3', color=color.red)
+
+_int_mod = 2 % 2                // const int = 0
+_float_mod = 2.0 % 2.0          // const float = 0
+_float_int_mod = 2 % 2.0        // const float = 0.0
+// plot(_float_int_mod, title="?")
+series_mod = close % 4          // series float = close[n] % 4
+na_mod = 2 % na                 // na
+integer_division_mod = 1 % 2    // const int = 1   Because 1/2 where 1 is the remainder
+// plot(integer_division_mod, color=color.green)
+
+
+
+// Real life use case of MODULO
+h = (time / 1000) / 3600  // Hours since january 1, 1970 UTC
+military_hour_time = h % 24
+// plot(military_hour_time, title='mtime')
+// twelve_hour_clock = military_hour_time % 12   // 15 % 12 = 3pm
+// plot(twelve_hour_clock, 'clock')
+m = (time / 60 / 1000) % 60  // Minutes in an hour
+plot(m, 'minutes')
+s = (time / 1000) % 60
+plot(s, 'seconds')
+plot(hour, 'hour')
+plot(second, 'second')

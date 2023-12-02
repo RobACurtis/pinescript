@@ -1,0 +1,58 @@
+Need to specify verision# -> or it will default to version 1
+Need to specfiy study or strategy
+
+1. studies
+ plot info on chart
+ contain calculations
+ can create and use alertcondition
+ cannot use it for backtesting
+ cannot contain strategy calls
+
+2. strategies
+ plot info on chart
+ contain calculations
+ can create but not use alertcondition
+ cannot use for backtesting
+ cancontain strategy calls
+
+3. identifiers
+ upper or lower case letters (case sensitive)
+ underscore, digits (cannot begin with digit)
+
+
+4. What types of variables can you assign to identifiers?
+- Integers
+- Floats
+- Strings
+- Bool
+- Color
+- Line and Label
+- Plt and hline
+- na (not available (None) )
+
+resources
+https://www.tradingview.com/blog/en/introducing-pine-script-4-12626/
+
+
+Literal Form
+- represents a fixed value
+Const Form
+- does not change during script execution
+- known or can be caluclated at compile time
+- referred to as a constant
+Series Form (most important)
+- most common form in pine
+- changes in script execution
+- store a sequence of historical values associated with bars of the main chart
+- can be accessed using the [] operator
+- You cant overwrite historical values
+- (open, high, low, close, volume, time) are examples of built in series
+- everytime you reassign a variable with walrus operator it changes and becomes a series
+Input Form
+- Does not change during script execution
+- Unknown at compile time
+- originate from an input function
+Simple Form
+- does not change during script execution
+- Unknown at compile time
+- values that come from the main charts symbol information
