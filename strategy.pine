@@ -1,0 +1,44 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Gammapips
+
+//@version=4
+strategy("My Script", overlay=true)
+
+// Inputs
+i_stratSelect = input(defval="rsi", type=input.string, title="Select Strategy", options=['rsi', 'macd', 'bb'])
+i_bbsrc = input(defval=close, title="BB strat source", type=input.source)
+
+
+f_strategySelector(_strat) =>
+    if _strat == 'rsi'
+        rsi = rsi(close, 14)
+        rsibuyCondition = crossover(rsi, 30)
+        rsisellCondition = crossunder(rsi, 70)
+        [rsibuyCondition, rsisellCondition]
+    else if _strat == 'macd'
+        [macdLine, signalLine, histLine] = macd(close, 12, 26, 9)
+        macdbuyCondition = histLine > 0 and crossover(macdLine, signalLine)
+        macdsellCondition = histLine < 0 and crossunder(macdLine, signalLine)
+        [macdbuyCondition, macdsellCondition]
+    else if _strat == 'bb'
+        [middle, upper, lower] = bb(close, 10, 2)
+        bbbuyCondition = i_bbsrc < lower
+        bbsellCondition =  i_bbsrc > upper
+        [bbbuyCondition, bbsellCondition]
+    else
+        [na, na]
+        
+
+[buy, sell] = f_strategySelector(i_stratSelect)
+
+
+
+plotshape(buy ? low : na, text='buy', style=shape.arrowup, location=location.belowbar, color=color.green, textcolor=color.green, size=size.large)
+plotshape(sell ? high : na, text='sell', style=shape.arrowdown, location=location.abovebar, color=color.red, textcolor=color.red, size=size.large)
+
+if buy
+    strategy.entry("golong", strategy.long)
+
+if sell
+    strategy.entry("goshort", strategy.short)
+
