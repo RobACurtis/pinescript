@@ -1,0 +1,140 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © pAulseperformance
+// The purpose of this script is to create alerts for multiple ticker feeds. By default Tradingview makes us have to create a separate alert for each ticker/timefram. So if 
+// We had a watch list of 10 different tickers we would need to create 10 different alerts.
+// The aim of this script is to reduce the amount of alert creation, by creating variable alerts.
+
+
+//@version=4
+study("Multiple Alerts", overlay=true)
+i_T1 = input('BTCUSD', type=input.symbol)
+i_T2 = input('AUDUSD', type=input.symbol)
+i_T3 = input('AMC', type=input.symbol)
+
+
+
+
+
+
+f_strategy() =>
+    smaFast = sma(close, 50)
+    smaSlow = sma(close, 200)
+    goLong  = crossover(smaFast, smaSlow)
+    goShort = crossunder(smaFast, smaSlow)
+    goLong := true
+    signal = goLong ? 1 : goShort ? -1 : 0
+    
+
+f_screener(_ticker) =>
+    message = ''
+    
+    [signal, _tickerClose, _OP, _hi] = security(_ticker, timeframe.period, [f_strategy(), close, open, high])
+    
+    if signal == 1 
+        message := "Buy " + _ticker + "@" + tostring(_tickerClose)
+    else if signal == -1
+        message := "Sell " + _ticker + "@" + tostring(_tickerClose)
+    
+    if signal == 1 or signal == -1
+        alert(message, alert.freq_once_per_bar_close)
+    signal
+        
+
+
+t1_signal = f_screener(i_T1)
+plot(t1_signal, title="T1 Signal")
+
+t2_signal = f_screener(i_T2)
+plot(t2_signal, title="T2 Signal")
+t3_signal = f_screener(i_T3)
+plot(t3_signal, title="T3 Signal")
+
+
+plot(sma(close, 50), color=color.red)
+plot(sma(close, 200), color=color.green)
+
+
+
+
+
+
+
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © pAulseperformance
+
+//@version=4
+study("Alerts Study")
+
+// 3 types of alerts.
+// alertcondition()
+// alert()
+// strategy alerts 
+
+
+
+// Method 1
+// alertcondition()
+
+// Syntax:
+//     alertcondition(condition, title, message) → void
+
+// args:
+//    condition - Required - Type: series 
+//    title     - Optional - Type: const string
+//    message   - Optional - Type: const string
+// 
+// Remarks:
+//     Take up an additional plot output.
+//     Must be global.
+
+
+// alertcondition(true, title="alertcondition1", message="Always True") 
+// alertcondition(true, title=input("alertcondition1"), message="Always True")   // Cant do this
+// alertcondition(true, title="alertcondition2", message="Always True")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Method 2
+// alert()
+// alerts() are brand new in version 4. They allow us to use series strings.
+// series strings are also brand new in version 4.
+
+// Syntax:
+//     alert(message, freq) → void
+
+// args:
+//    message - Required - Type: series[string] 
+//    freq    - Optional - Type: input string
+condition = true
+
+// if condition
+    // alert("alert() freq_all", alert.freq_all)
+    
+// alert("Alert freq_once_per_bar", alert.freq_once_per_bar)
+// alert("Alert freq_once_per_bar_close", alert.freq_once_per_bar_close)
+
+
+
+// Notes:
+// alert("Close: {{close}}") // This doesn't work.
+alert("Close: " + tostring(close)) // Do this instead
+
+
+
+
+
+plot(na)
