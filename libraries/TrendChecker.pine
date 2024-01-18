@@ -1,0 +1,100 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © djdrob
+
+//@version=5
+
+// @description This will check the direction of the market based on the current ticker and time.
+// Use the bullish or bearish or getTrend function with its proper arguments to determine current trend.
+library("TrendChecker", overlay = true)
+
+// @function sets RSI parameters.
+setRSI() =>
+	rsi1 = ta.rsi(close, 15)
+	kRed = ta.sma(ta.stoch(rsi1, rsi1, rsi1, 20), 4)
+	dGreen = ta.sma(kRed, 4)
+	[kRed, dGreen]
+
+// @function sets MACD parameters
+setMACD() =>
+	fast_ma = ta.ema(close, 12)
+	slow_ma = ta.ema(close, 26)
+	macd = fast_ma - slow_ma
+	signal = ta.ema(macd, 9)
+	hist = macd - signal
+	[macd, signal]
+
+// @function sets up 2 and 3 sma
+setSMA() =>
+	red = ta.sma(close, 2)
+	green = ta.sma(close, 3)
+	[red, green]
+
+// @returns boolean
+checkRSICrossing() =>
+	[k, d] = setRSI()
+	result = (k > d) ? true : false
+	result
+
+// @returns boolean
+checkMACDCrossing() =>
+	[macd, signal] = setMACD()
+	result = macd > signal ? true : false
+	result
+
+// @returns boolean
+checkSMACrossing(int timeDelay) =>
+	[red, green] = setSMA()
+	result = red > green[timeDelay] ? true : false
+
+// @function Checks if the chart is bullish
+// @returns boolean
+// @param this function take 3 booleans to decide which combination of indicators to check for direction
+// and optional argument of time delay for the 3sma(green)
+export bullish(bool RSI, bool MACD, bool SMA, int timeDelay = 2) =>
+	bullishRSI = checkRSICrossing()
+	bullishMACD = checkMACDCrossing()
+	bullishSMA = checkSMACrossing(timeDelay)
+
+	var bool _rsi = true
+	var bool _sma = true
+	var bool _macd = true
+    if RSI
+        _rsi := bullishRSI == true
+    if MACD
+        _macd := bullishMACD == true
+    if SMA
+        _sma := bullishSMA == true
+
+	bullish = _rsi and _macd and _sma
+	bullish
+
+// @function Checks if the chart is bearish
+// @returns boolean
+// @param this function take 3 booleans to decide which combination of indicators to check for direction
+// and optional argument of time delay for the 3sma(green)
+export bearish(bool RSI, bool MACD, bool SMA, int timeDelay = 2) =>
+	bearishRSI = checkRSICrossing()
+	bearishMACD = checkMACDCrossing()
+	bearishSMA = checkSMACrossing(timeDelay)
+
+	var bool _rsi = true
+	var bool _sma = true
+	var bool _macd = true
+    if RSI
+        _rsi := bearishRSI == false
+    if MACD
+        _macd := bearishMACD == false
+    if SMA
+        _sma := bearishSMA == false
+
+	bearish = _rsi and _macd and _sma
+	bearish
+
+// @function Get bull and bear trends
+// @returns boolean
+// @param this function take 3 booleans to decide which combination of indicators to check for direction
+// and optional argument of time delay for the 3sma(green)
+export getTrend(bool RSI, bool MACD, bool SMA, int timeDelay = 2) =>
+	bullish = bullish(RSI, MACD, SMA, timeDelay)
+	bearish = bearish(RSI, MACD, SMA, timeDelay)
+	[bullish, bearish]

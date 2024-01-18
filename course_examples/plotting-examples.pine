@@ -1,0 +1,315 @@
+//@version=4
+//   ____    _           _     _     _
+//  |  _ \  | |   ___   | |_  | |_  (_)  _ __     __ _
+//  | |_) | | |  / _ \  | __| | __| | | | '_ \   / _` |
+//  |  __/  | | | (_) | | |_  | |_  | | | | | | | (_| |
+//  |_|     |_|  \___/   \__|  \__| |_| |_| |_|  \__, |
+//                                               |___/
+
+
+//  ----------- ----------- OVERLAY ----------- -----------
+// How do you want your plots to be displayed?
+
+// **************************
+// study("Pinescript - Plotting overlay=false", overlay=false)
+// Plots display separated from chart
+// Good for separating plots from chart data
+// No scaling issues
+// **************************
+
+// **************************
+// study("Pinescript - Plotting overlay=true", overlay=true)
+// Plots display on chart
+// Good for visualizing plots with chart data
+// Should be same scale as chart data
+// **************************
+
+// Note: If you wish to switch overlay, you will need to click “add to chart” again.
+// Simply changing the boolean and saving will not produce the result you desire.
+
+
+
+//  ----------- ----------- PLOT FUNCTION ----------- -----------
+// Plots a series of data onto the chart.
+
+// **************************
+// plot(close)  // Basic plot function
+// **************************
+// Every study requires at least one plot annotation* (Unless you use some other output like bgcolor or barcolor)
+// Plot annotations have 13 parameters, but only one is required -- the series type to plot!
+// If it’s not a series type, Pine Script will  automatically cast the type into a series (in most cases, booleans won’t work)
+// Up to 64 plot annotations can be on one script (This is a cumulation of all output series)
+// Don’t worry about counting your plots though, Pine Script will let you know if you go over.
+
+// Plot with ALL the arguments.
+// **************************
+// plot(close,
+//      title="Plot close",
+//      color=color.red,
+//      linewidth=1,
+//      style=plot.style_line,
+//      trackprice=true,
+//      transp=100,
+//      histbase=6000,
+//      offset=-10,
+//      join=true,
+//      editable=false,
+//      display=display.all)
+// **************************
+
+
+
+//  ----------- ----------- USER INPUTS ----------- -----------
+// These are variables you can change after compiling your code.
+// User can see and edit inputs. Inputs look and behave exactly the same as inputs of built-in Technical Analysis indicators.
+
+// Possible values are input.bool, input.integer, input.float, input.string, input.symbol, input.resolution, input.session, input.source.
+// Result of input function always should be assigned to a variable.
+
+// **************************
+// input_bool       = input(defval=false, title="On/Off", type=input.bool, confirm=true)
+// input_integer    = input(defval=1, title="Pick a number 1-1000?", type=input.integer, minval=1, maxval=1000, confirm=true, step=10)
+// input_float      = input(defval=1.0, title="", type=input.float)
+// input_string     = input(defval='247', title="input string", type=input.string)
+// input_symbol     = input(title="Symbol", type=input.symbol, defval="BTCUSD")
+// input_resolution = input(title="Resolution", type=input.resolution, defval="60")
+// input_session    = input(title="Session", defval="24x7",type=input.session, options=["24x7", "0900-1300", "1300-1700", "1700-2100"])
+// input_source     = input(defval=close, title="OHLChl2", type=input.source)
+// **************************
+
+
+
+//  ----------- ----------- PLOTTING PRICE LEVELS ----------- -----------
+// We can draw horizonatal lines at specific price levels on our charts by using hline()
+
+// **************************
+// hline(6000)  // Draws a horizontal line across the chart on the 6000 y-axis.
+// hline(6000, title='6000 hline', color=color.gray, linestyle=hline.style_solid, linewidth=3, editable=true)
+// **************************
+// We can also assign hline functions to identifiers to be used in fill.
+// **************************
+// hline_10k = hline(10000)
+// hline_5k  = hline(5000)
+// **************************
+
+
+
+//  ----------- ----------- COLORING BACKGROUNDS ----------- -----------
+// There is two ways to color the backgrounds with Pine Script. fill() and bgcolor()
+
+// Using fill() we can *fill* the background between two plots or two hlines.
+// **************************
+// fill(hline_10k, hline_5k)
+
+// fill(hline(10000), hline(5000), color=color.red, transp=50, title='5-10k fill', editable=true)
+// **************************
+// We can do the same thing with plots!
+// **************************
+// plot_h    = plot(high)
+// plot_l    = plot(low)
+// fill(plot_h, plot_l, color=color.orange, transp=20, title="plot fill", editable=false, show_last=50)
+// **************************
+
+//  Fills background of bars with specified color using bgcolor() aka *background*color
+// **************************
+// bgcolor(color=color.blue)
+// bgcolor(color=color.red, transp=20, offset=-1, editable=true, show_last=10, title="Last ten bgcolor")
+// bgcolor(color=color.red, transp=20, offset=-2, editable=true, show_last=1, title="Last ten bgcolor")
+// **************************
+
+
+
+//  ----------- ----------- COLORING CANDLES ----------- -----------
+// Sets the color of the bars. Order does not matter. Will always overlay=true even if overlay=false.
+
+// **************************
+// barcolor(color=color.red)
+// barcolor(color=color.yellow, offset=0, editable=true, show_last=100, title="last 100 candles are blue")
+// **************************
+
+
+
+//  ----------- ----------- PLOTTING ARROWS ----------- -----------
+// Plots up and down arrows on the chart.
+// Up arrow is drawn at every indicator positive value, down arrow is drawn at every negative value.
+// If indicator returns na then no arrow is drawn.
+// Arrows has different height, the more absolute indicator value the longer arrow is drawn.
+// Use plotarrow function in conjunction with 'overlay=true' study parameter!
+// Useful for showing strength of an indicator or direction + velocity (vector) of buy/sell.
+
+// **************************
+// plotarrow(close-open)
+// plotarrow(close-open, offset=-2, title='offset', colorup=color.green, colordown=color.white, minheight=1, maxheight=200)
+// **************************
+
+
+
+//  ----------- ----------- PLOTTING SHAPES ----------- -----------
+// Plots a shape on the chart. Using a series.
+
+// POSSIBLE SHAPE STYLES:
+// shape.xcross, shape.cross, shape.triangleup, shape.triangledown, shape.flag, shape.circle,
+// shape.arrowup, shape.arrowdown, shape.labelup, shape.labeldown, shape.square, shape.diamond.
+
+// POSSIBLE SHAPE LOCATIONS:
+// location.abovebar, location.belowbar, location.top, location.bottom, location.absolute.
+
+// POSSIBLE SHAPE SIZES:
+// size.auto, size.tiny, size.small, size.normal, size.large, size.huge
+
+// **************************
+// study("Pinescript - Plotting overlay=false", overlay=true)
+// series_bool = close > open
+// plotshape(series_bool)  // The simplest way only requires only a series
+// plot()
+// offset_input = input(defval=-1, type=input.integer)
+// plotshape(close, title="shapes", style=shape.diamond, location=location.absolute, color=color.blue, transp=20, offset=offset_input, text='diamond!', textcolor=color.red, size=size.small)
+// **************************
+
+
+
+//  ----------- ----------- PLOTTING CHARACTERS ----------- -----------
+// Plots visual shapes using any given one Unicode character on the chart.
+// Use plotchar function in conjunction with 'overlay=true' study parameter!
+// https://unicode-table.com/en/
+
+// **************************
+// 😁
+// study("Pinescript - Plotting overlay=false", overlay=true)
+// series_bool = close > open
+// plotchar(series_bool)  // Just a series is the only required argument.
+// plotchar(close) // series[float] will be cast into series[bool], unless location=location.absolute.
+// plotchar(close, location=location.absolute)  // Plots a star on everycandle close price. instead of default above bar.
+// plotchar(close < open, title='finger down', char='333', color=color.green, location=location.abovebar)
+// plotchar(close > open, char='🙌', location=location.belowbar)
+// plotchar(barstate.islast ? close[1] + close*.10: na, char='🧠', location=location.absolute, offset=10, size=size.large, text='use your')
+// **************************
+
+// Note: plotshape() and plotchar() are practically identical in function and form. Choose whichever one you would like based on your needs.
+
+
+
+//  ----------- ----------- PLOTTING CUSTOM BARS & CANDLES ----------- -----------
+// Plot your own candles with plotcandle.
+// This can be used as overlay=true or false.
+// Decent workaround for viewing multiple charts on a split screen without pro-version.
+
+// **************************
+// plotcandle(open=open, high=high, low=low, close=close)   // This is the simplest method. Will just plot the same candles, but in the default blue color.
+// **************************
+
+
+// A more complex example that plots candles from the weekly chart. Use on a lower timeframe.
+// **************************
+// ohlc() => [open, high, low, close]
+// [o,h,l,c] = security(syminfo.tickerid, resolution='1W', expression=ohlc())  // Special function that gets the weekly candle
+// plotcandle(open=o, high=h, low=l, close=c, color=color.yellow)  // Show last weeks candle and this weeks
+// **************************
+
+// Another example for those who wish to view different charts on the same screen without upgrading.
+// **************************
+// study("Pinescript - Adding a chart without Pro plan 🤫", overlay=false)  // Be sure to comment out any other study() before trying to use this one.
+// ticker_id = input(defval="xrpusd", type=input.symbol, confirm=true)
+// ohlc() => [open, high, low, close]
+// [o,h,l,c] = security(ticker_id, resolution=timeframe.period, expression=ohlc())  // Special function that gets the weekly candle
+// candle_color = c >= o ? color.green : color.red
+// plotcandle(o,h,l,c, color=candle_color, wickcolor=color.gray)
+// **************************
+
+// Plot bar does the same thing as plotcandle. The only difference being it is a bar chart, without wicks and body.
+// **************************
+// plotbar(open,low, high, close)  // minimum required arguments.
+// **************************
+
+
+
+//  ----------- ----------- PLOTTING EXAMPLES ----------- -----------
+
+// Plot vwap as a candle.
+// **************************
+// study("Vwap Candlesticks", overlay=false)
+// v_open = vwap(open)
+// v_high = vwap(high)
+// v_low = vwap(low)
+// v_close = vwap(close)
+// color_vwap_candles = v_close > v_open ? color.green : color.red
+// plotcandle(open=v_open, high=v_high, low=v_low, close=v_close, color=color_vwap_candles)
+// plot(vwap)
+// **************************
+
+
+
+
+
+
+
+// plot rsi as a candle!
+// **************************
+// study("RSI Candlesticks", overlay=false)
+// rsi_open = rsi(open, 14)
+// rsi_high = rsi(high, 14)
+// rsi_low = rsi(low, 14)
+// rsi_close = rsi(close, 14)
+// color_rsi_candles= rsi_close > rsi_open ? color.blue : color.purple
+// plotcandle(open=rsi_open, high=rsi_high, low=rsi_low, close=rsi_close, color=color_rsi_candles)
+// hline(70)
+// hline(30)
+// plot(rsi(close, 14))
+// // **************************
+
+
+// Build your own custom rsi indicator
+// **************************
+study("Custom RSI of VWAP", overlay=false)
+length      = input(title="Rsi Length",  type=input.integer, defval=14, minval=1)  // User input for rsi length
+upper_bound = input(title="Upper Bound", type=input.integer, defval=70, minval=0, maxval=100)  // User input for overbought horizontal line
+lower_bound = input(title="Lower Bound", type=input.integer, defval=30, minval=0, maxval=100)  // User input for oversold horizontal line
+
+vwap_rsi     = rsi(vwap, length)   // Calculation of rsi with volume weighted average price as source, and user input as length
+rsi_is_above = vwap_rsi >= upper_bound   // If the value of vwap_rsi is above the upperbound, this becomes true. Else false.
+rsi_is_below = vwap_rsi <= lower_bound   // This is the same but for the lowerbound.
+
+
+plot(vwap_rsi)  // Plot the rsi
+upper_hl = hline(upper_bound)   // Plot the hlines and assign to be used for fill
+lower_hl = hline(lower_bound)
+fill(upper_hl, lower_hl, color=color.purple)   // Fills the area between hlines. Default color is blue.
+// **************************
+
+// Plotting additional shapes for more intuitive rsi.
+
+// This won't work with overlay=false,
+// **************************
+// plotshape(rsi_is_above, style=shape.arrowdown, location=location.top, color=color.red, textcolor=color.red)
+// plotshape(rsi_is_below, style=shape.arrowup, location=location.bottom, color=color.green, textcolor=color.green)
+// **************************
+
+//Lets do the same thing, but change the location argument. Also, I will remove the text.
+// **************************
+// plotshape(rsi_is_above, style=shape.arrowdown, location=location.top, color=color.red)
+// plotshape(rsi_is_below, style=shape.arrowup, location=location.bottom, color=color.green)
+// **************************
+
+// The text would be nice, just in case someone using this indicator is colorblind or maybe they don't understand arrows becuause they are an alien.
+// **************************
+// input_sell_sym = input(defval='🐻', confirm=true, title="Select Bearish Symbol", type=input.string, options=['⚠','', '🐻', '📉', '❎'])
+// input_buy_sym = input(defval="🐮", confirm=true, title="Select Bullish Symbol", type=input.string, options=['⚠','', "🐮", '📈', '✅'])
+// plotchar(rsi_is_above, location=location.top, char=input_sell_sym)
+// plotchar(rsi_is_below, location=location.bottom, char=input_buy_sym)
+// **************************
+
+//  unless we use location.absolute
+// **************************
+plotshape(rsi_is_above?vwap_rsi: na,  location=location.absolute, color=color.red, textcolor=color.red)
+plotshape(rsi_is_below?vwap_rsi: na, location=location.absolute, color=color.green, textcolor=color.green)
+// **************************
+
+// Or we could just use bgcolor
+// **************************
+bgcolor(rsi_is_above ? color.red : rsi_is_below ? color.green : na)
+// **************************
+
+// We could even color the bars on the main chart.
+// **************************
+barcolor(rsi_is_above ? color.red : rsi_is_below ? color.green : color.white)
+// **************************

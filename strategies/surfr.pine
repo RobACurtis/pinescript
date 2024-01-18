@@ -1,0 +1,96 @@
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © djdrob
+
+//@version=5
+strategy('Surfr', overlay=true)
+import djdrob/TrendChecker/1
+
+_sma = input.int(50, title="SMA")
+goLong = input.bool(true, title="Go Long")
+goShort = input.bool(true, title="Go Short")
+maxRisk = input.int(5, title="Max Risk in points")
+
+timeframe = input.timeframe("120", title="What bigger timeframe do you want to trade with?")
+
+sma = ta.sma(close, _sma)
+sma_89 = ta.sma(close, 89)
+atr = ta.atr(20)
+plot(sma, color=color.orange, title = "SMA")
+plot(ta.sma(close, 89), color=color.rgb(0, 98, 255), title = "SMA 89")
+
+[middle, upper, lower] = ta.bb(close, 20, 2)
+plot(upper, color=color.rgb(4, 0, 255), title="upper")
+plot(middle, color=color.rgb(4, 0, 255), title="middle")
+plot(lower, color=color.rgb(4, 0, 255), title="lower")
+
+setRSI() =>
+	rsi1 = ta.rsi(close, 15)
+	kRed = ta.sma(ta.stoch(rsi1, rsi1, rsi1, 20), 4)
+	dGreen = ta.sma(kRed, 4)
+	[kRed, dGreen]
+
+setMACD() =>
+	fast_ma = ta.ema(close, 12)
+	slow_ma = ta.ema(close, 26)
+	macd = fast_ma - slow_ma
+	signal = ta.ema(macd, 9)
+	hist = macd - signal
+	[macd, signal]
+
+checkMACDCrossing() =>
+	[macd, signal] = setMACD()
+	result = macd > signal ? true : false
+	result
+
+[rsiRed, rsiGreen] = request.security(syminfo.tickerid, timeframe, setRSI())
+[macdRed, macdGreen] = request.security(syminfo.tickerid, timeframe, setMACD())
+
+var float entryPrice = na
+stopPriceLong = ta.lowest(1) - atr
+stopPriceShort = ta.highest(1) + atr
+[red, green] = setRSI()
+exitLong = ta.crossover(green, red) and red > 60
+exitShort = ta.crossover(red, green) and red < 40
+
+bullishWave() =>
+    prevCandleBearish = close[1] < sma
+    isCloseBullish = close > sma
+    checkRisk = (close - stopPriceLong) <= maxRisk
+    rsiCondition = red > green
+    bigs = (rsiRed > rsiGreen) or (macdRed > macdGreen)
+    bullishWave = prevCandleBearish and isCloseBullish and strategy.position_size == 0 and checkRisk and rsiCondition and bigs
+    bullishWave
+
+bearishWave() =>
+    prevCandleBullish = close[1] > sma
+    isCloseBearish = close < sma
+    checkRisk = (stopPriceShort - close) <= maxRisk
+    rsiCondition = red < green
+    bigs = (rsiRed < rsiGreen) or (macdRed < macdGreen)
+    bullishWave = prevCandleBullish and isCloseBearish and checkRisk and rsiCondition and strategy.position_size == 0 and bigs
+    bullishWave
+
+trender_ridr_strategy() =>
+    [bullishWave(), bearishWave()]
+
+[buy, sell] = trender_ridr_strategy()
+
+if buy and goLong
+    strategy.entry("Go Long", strategy.long)
+    strategy.exit("Stop Loss", stop=stopPriceLong)
+
+if sell and goShort
+    strategy.entry('goshort', strategy.short)
+    strategy.exit("Stop Loss", stop=stopPriceShort)
+
+if (strategy.position_size > 0)
+    if (close <= sma and close > (strategy.position_avg_price + 3))//exit !
+        strategy.close_all('exit long')
+    else if (exitLong)
+        strategy.close_all('exit long RSI crossing')
+
+if (strategy.position_size < 0)
+    if (close >= sma and close <= strategy.position_avg_price - 3) // exit!
+        strategy.close_all('exit short')
+    else if (exitShort)
+        strategy.close_all('exit short RSI crossing')

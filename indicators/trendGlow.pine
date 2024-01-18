@@ -1,0 +1,64 @@
+//@version=5
+indicator("TrendGlow", overlay = true)
+import djdrob/BullBear/1
+// This Pine Script™ code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © djdrob
+
+timeframe = input.timeframe("55", title="Timeframe to trade with")
+checkRSI = input.bool(true, title="Check StochRSI")
+checkMACD = input.bool(true, title="Check MACD")
+checkSMA = input.bool(true, title="Check SMA")
+
+colorDefaultBull = input.color(defval = color.white, title="Default Candles", inline = 'Default')
+colorDefaultBear = input.color(defval = color.red, title = '', inline = 'Default')
+
+changeOnBull = input.bool(defval = true, title = "Change Candle Colors When Trending Up?")
+colorBullishBull = input.color(defval = color.white, title="Bullish Market", inline = 'Bullish')
+colorBullishBear = input.color(defval = color.blue, title = '', inline = 'Bullish')
+
+changeOnBear = input.bool(defval = true, title = "Change Candle Colors When Trending Down?")
+colorBearishBull = input.color(defval = color.white, title="Bearish Market", inline = 'Bearish')
+colorBearishBear = input.color(defval = color.red, title = '', inline = 'Bearish')
+
+changeOnSideways = input.bool(defval = true, title = "Change Candle Colors When Trending Sideways?")
+colorSidewaysBull = input.color(defval = color.rgb(120, 123, 134, 54), title="Sideways Candle Color", inline = 'Sideways')
+colorSidewaysBear = input.color(defval = color.gray, title = '', inline = 'Sideways')
+
+// if no selections are made, both will return true.
+[isBullish, isBearish] = request.security(syminfo.tickerid, timeframe, BullBear.getTrend(checkRSI, checkMACD, checkSMA))
+bullish = isBullish == true and isBearish == false
+bearish = isBearish == true and isBullish == false
+
+getCandleColors() =>
+    var color candleBull = na
+    var color candleBear = na
+
+    if bullish
+        if changeOnBull
+            candleBull := colorBullishBull
+            candleBear := colorBullishBear
+        else
+            candleBull := colorDefaultBull
+            candleBear := colorDefaultBear
+
+    else if bearish
+        if changeOnBear
+            candleBull := colorBearishBull
+            candleBear := colorBearishBear
+        else
+            candleBull := colorDefaultBull
+            candleBear := colorDefaultBear
+
+    else if bullish == false and bearish == false
+        if changeOnSideways
+            candleBull :=  colorSidewaysBull
+            candleBear := colorSidewaysBear
+        else
+            candleBull := colorDefaultBull
+            candleBear := colorDefaultBear
+
+    [candleBear, candleBull]
+
+[bearishCandle, bullishCandle] = getCandleColors()
+selectedColor = open > close ? bearishCandle : bullishCandle
+plotcandle(open, high, low, close, color = selectedColor)
