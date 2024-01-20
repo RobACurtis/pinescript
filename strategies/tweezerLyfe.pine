@@ -34,7 +34,7 @@ bullishTweezer() =>
     prevCandleBearish = close[1] < open[1] and close[1] <= lower 
     isCloseBullish = close >= hl2[1] and open < lower
     checkRisk = (high - stopPriceLong) <= maxRisk
-    bigs = big_candle_1_close > big_candle_2_close or open > big_candle_1_close
+    bigs = big_candle_1_close > big_candle_2_close or big_candle_open > big_candle_2_close
     rsi = ta.crossover(kRed, dGreen) or (kRed < dGreen and rsi1 < 40)
     bullishTweezer = prevCandleBearish and isCloseBullish and checkRisk and rsi and bigs
     bullishTweezer
@@ -44,7 +44,7 @@ bearishTweezer() =>
     isCloseBearish = close <= hlc3[1] and open >= upper and hl2 >= upper
     checkRisk = (high[1] - stopPriceShort) <= maxRisk
     bigs = big_candle_1_close < big_candle_2_open or big_candle_open < big_candle_2_close
-    rsi = ta.crossover(dGreen, kRed) or (kRed > dGreen and rsi1 > 80)
+    rsi = ta.crossunder(kRed, dGreen) or (kRed > dGreen and rsi1 > 80)
     bearishTweezer = prevCandleBullish and isCloseBearish and checkRisk and rsi and bigs
     bearishTweezer
 
