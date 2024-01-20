@@ -3,7 +3,7 @@
 
 //@version=5
 strategy('Surfr', overlay=true)
-import djdrob/TrendChecker/1
+import djdrob/TrendChecker/1      
 
 _sma = input.int(50, title="SMA")
 goLong = input.bool(true, title="Go Long")
@@ -11,6 +11,14 @@ goShort = input.bool(true, title="Go Short")
 maxRisk = input.int(5, title="Max Risk in points")
 
 timeframe = input.timeframe("120", title="What bigger timeframe do you want to trade with?")
+
+big_candle_2_close = request.security(syminfo.tickerid, "120", close[2])
+big_candle_1_close = request.security(syminfo.tickerid, "120", close[1])
+big_candle_open = request.security(syminfo.tickerid, "120", open)
+
+big_candle_2_open = request.security(syminfo.tickerid, "120", open[2])
+big_candle_1_open = request.security(syminfo.tickerid, "120", open[1])
+big_candle_close = request.security(syminfo.tickerid, "120", open)
 
 sma = ta.sma(close, _sma)
 sma_89 = ta.sma(close, 89)
@@ -23,7 +31,7 @@ plot(upper, color=color.rgb(4, 0, 255), title="upper")
 plot(middle, color=color.rgb(4, 0, 255), title="middle")
 plot(lower, color=color.rgb(4, 0, 255), title="lower")
 
-setRSI() =>
+setRSI() => 
 	rsi1 = ta.rsi(close, 15)
 	kRed = ta.sma(ta.stoch(rsi1, rsi1, rsi1, 20), 4)
 	dGreen = ta.sma(kRed, 4)
@@ -54,10 +62,10 @@ exitShort = ta.crossover(red, green) and red < 40
 
 bullishWave() =>
     prevCandleBearish = close[1] < sma
-    isCloseBullish = close > sma
+    isCloseBullish = close > sma 
     checkRisk = (close - stopPriceLong) <= maxRisk
-    rsiCondition = red > green
-    bigs = (rsiRed > rsiGreen) or (macdRed > macdGreen)
+    rsiCondition = red > green or ta.crossover(red, green)
+    bigs = (big_candle_1_close > big_candle_2_close or big_candle_open > big_candle_2_close) or ((rsiRed > rsiGreen) or (macdRed > macdGreen))
     bullishWave = prevCandleBearish and isCloseBullish and strategy.position_size == 0 and checkRisk and rsiCondition and bigs
     bullishWave
 
@@ -66,7 +74,7 @@ bearishWave() =>
     isCloseBearish = close < sma
     checkRisk = (stopPriceShort - close) <= maxRisk
     rsiCondition = red < green
-    bigs = (rsiRed < rsiGreen) or (macdRed < macdGreen)
+    bigs = (big_candle_1_close < big_candle_2_open or big_candle_open < big_candle_2_close) or ((rsiRed < rsiGreen) or (macdRed < macdGreen))
     bullishWave = prevCandleBullish and isCloseBearish and checkRisk and rsiCondition and strategy.position_size == 0 and bigs
     bullishWave
 
@@ -84,13 +92,13 @@ if sell and goShort
     strategy.exit("Stop Loss", stop=stopPriceShort)
 
 if (strategy.position_size > 0)
-    if (close <= sma and close > (strategy.position_avg_price + 3))//exit !
-        strategy.close_all('exit long')
-    else if (exitLong)
+    if (close <= sma)
+        strategy.close_all('exit long crossing sma')
+    if (exitLong)
         strategy.close_all('exit long RSI crossing')
 
 if (strategy.position_size < 0)
-    if (close >= sma and close <= strategy.position_avg_price - 3) // exit!
-        strategy.close_all('exit short')
+    if (close >= sma) // exit!
+        strategy.close_all('exit short crossing sma')
     else if (exitShort)
         strategy.close_all('exit short RSI crossing')
