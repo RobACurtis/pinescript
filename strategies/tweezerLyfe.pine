@@ -3,39 +3,49 @@
 
 //@version=5
 strategy('Tweezer Lyfe', overlay=true)
-import djdrob/TrendChecker/1
 
-exitStrategy = input.string("75%", title="Exit Strategy", options=["75%", "band-to-band"])
-watchAlert = input.bool(true, title="Set watch alert")
 goLong = input.bool(true, title="Go Long")
 goShort = input.bool(true, title="Go Short")
-showLabel = input.bool(true, title="Show Label?")
 maxRisk = input.int(7, title="Max Risk in points")
 
-timeframe = input.timeframe("5", title="What bigger timeframe do you want to trade with?")
-checkRSI = input.bool(true, title="Check StochRSI")
-checkMACD = input.bool(false, title="Check MACD")
-checkSMA = input.bool(false, title="Check SMA")
+big_candle_2_close = request.security(syminfo.tickerid, "55", close[2])
+big_candle_1_close = request.security(syminfo.tickerid, "55", close[1])
+big_candle_open = request.security(syminfo.tickerid, "55", open)
 
-[isBullish, isBearish] = request.security(syminfo.tickerid, timeframe, TrendChecker.getTrend(checkRSI, checkMACD, checkSMA))
+big_candle_2_open = request.security(syminfo.tickerid, "55", open[2])
+big_candle_1_open = request.security(syminfo.tickerid, "55", open[1])
+big_candle_close = request.security(syminfo.tickerid, "55", open)
 
+// Bollinger Bands
 [middle, upper, lower] = ta.bb(close, 20, 2)
 plot(upper, color=color.rgb(4, 0, 255), title="upper")
 plot(middle, color=color.rgb(4, 0, 255), title="middle")
 plot(lower, color=color.rgb(4, 0, 255), title="lower")
-// try making a check to trade with stoch as well .
+
+rsi1 = ta.rsi(close, 15)
+kRed = ta.sma(ta.stoch(rsi1, rsi1, rsi1, 20), 4)
+dGreen = ta.sma(kRed, 4)
+
+atr = ta.atr(20)
+stopPriceLong = ta.lowest(1) - atr
+stopPriceShort = ta.highest(1) + atr
+
 bullishTweezer() =>
-    prevCandleBearish = close[1] < open[1] and close[1] <= lower
-    isCloseBullish = close > hl2[1]
-    checkRisk = (high - low[1]) <= maxRisk
-    bullishTweezer = prevCandleBearish and isCloseBullish and checkRisk
+    prevCandleBearish = close[1] < open[1] and close[1] <= lower 
+    isCloseBullish = close >= hl2[1] and open < lower
+    checkRisk = (high - stopPriceLong) <= maxRisk
+    bigs = big_candle_1_close > big_candle_2_close or open > big_candle_1_close
+    rsi = ta.crossover(kRed, dGreen) or (kRed < dGreen and rsi1 < 40)
+    bullishTweezer = prevCandleBearish and isCloseBullish and checkRisk and rsi and bigs
     bullishTweezer
 
 bearishTweezer() =>
-    prevCandleBullish = close[1] > open[1] and close >= upper
-    isCloseBearish = close < hl2[1]
-    checkRisk = (high[1] - low) <= maxRisk
-    bearishTweezer = prevCandleBullish and isCloseBearish and checkRisk
+    prevCandleBullish = close[1] > open[1]
+    isCloseBearish = close <= hlc3[1] and open >= upper and hl2 >= upper
+    checkRisk = (high[1] - stopPriceShort) <= maxRisk
+    bigs = big_candle_1_close < big_candle_2_open or big_candle_open < big_candle_2_close
+    rsi = ta.crossover(dGreen, kRed) or (kRed > dGreen and rsi1 > 80)
+    bearishTweezer = prevCandleBullish and isCloseBearish and checkRisk and rsi and bigs
     bearishTweezer
 
 tweezer_strategy() =>
@@ -43,52 +53,19 @@ tweezer_strategy() =>
 
 [buy, sell] = tweezer_strategy()
 
-
-var float prevLow = na
-var float prevHigh = na
-var float entryPrice = na
-
-// alert to watch
-if watchAlert
-    if isBullish and goLong and (close < lower)
-        alert("Spreading the lower band on" + syminfo.tickerid)
-    if isBearish and goShort and (close > upper)
-        alert("Spreading the upper band on" + syminfo.tickerid)
-
 // order entry
+if buy and goLong
+    strategy.entry("Go Long", strategy.long)
+    strategy.exit("Stop Loss", stop=stopPriceLong)
 
-if buy and isBullish and goLong
-    prevLow := low[1]
-    entryPrice := close
-    strategy.entry('golong', strategy.long)
-if sell and true and goShort
-    prevHigh := high[1]
+if sell and goShort
     strategy.entry('goshort', strategy.short)
+    strategy.exit("Stop Loss", stop=stopPriceShort)
 
 if (strategy.position_size > 0)
-    if (close < prevLow) //stop out!
+    if (close >= (upper + middle) / 2)
         strategy.close_all('exit long')
-    if (close >= upper) and exitStrategy == "band-to-band"
-        strategy.close_all('exit long')
-    if (close >= (upper + middle) / 2) and exitStrategy == "75%"
-        strategy.close_all('exit long')
-
+    
 if (strategy.position_size < 0)
-    if (close > prevHigh) //stop out!
+    if (close <= (lower + middle) / 2)
         strategy.close_all('exit short')
-    if (close <= lower) and exitStrategy == "band-to-band"
-        strategy.close_all('exit short')
-    if (close <= (lower + middle) / 2) and exitStrategy == "75%"
-        strategy.close_all('exit short')
-
-if showLabel
-    currentDirection = isBullish ? "Bullish 🐂" : isBearish ? "Bearish 🧸" : "Sideways 📊"
-    var label id = na
-    label.delete(id)   // Delete last label
-    i_offsetLabel = input(-40, "Data Dashboard Offset")
-    offset = i_offsetLabel * (time - time[1])
-    dynamicText = "=== " + timeframe + " Trend ==="
-    id := label.new(x=time+offset, y=high + 15, xloc=xloc.bar_time, text=dynamicText, color= isBullish ? color.rgb(76, 175, 79, 46) : color.rgb(33, 149, 243, 50))
-    dynamicText := dynamicText + "\nLast close: " + str.tostring(close)
-    dynamicText := dynamicText  + '\n' + currentDirection + '\nPositions Open: ' + str.tostring(strategy.position_size)
-    label.set_text(id=id, text=dynamicText)
